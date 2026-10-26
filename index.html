@@ -1,11 +1,11 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-Hans">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ffe873">
 <meta name="color-scheme" content="light">
-<title>B3A 瀹炴椂鍒扮珯锝滃瘜娉伴偍 鈫?娣卞湷婀惧彛宀?/title>
+<title>B3A 实时到站｜富泰邨 → 深圳湾口岸</title>
 <style>
   :root {
     --bg: #ffe873;
@@ -14,8 +14,6 @@
     --line: rgba(59, 47, 0, .16);
     --dark: #1f2937;
     --pink: #cf3563;
-    --pink-hot: #e01e5a;
-    --green: #0f7a4a;
     --red: #a32b1f;
     color-scheme: light;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
@@ -92,96 +90,62 @@
     color: var(--soft);
   }
 
-  .board { margin-top: 26px; }
-
-  .ring {
-    position: relative;
-    width: 210px;
-    height: 210px;
-    margin: 0 auto;
-  }
-
-  .ring svg {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-  }
-
-  .ring circle {
-    fill: none;
-    stroke-width: 10;
-    stroke-linecap: round;
-  }
-
-  .ring .track { stroke: rgba(207, 53, 99, .18); }
-
-  .ring .bar {
-    stroke: var(--pink);
-    stroke-dasharray: 464.96;
-    stroke-dashoffset: 464.96;
-    transition: stroke-dashoffset .9s linear, stroke .3s;
-  }
-
-  .ring.is-close .bar { stroke: var(--pink-hot); }
-
-  .ring-text {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-  }
-
-  .num {
-    font-size: 72px;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: -.04em;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .unit {
-    font-size: 15px;
-    font-weight: 700;
-    color: #5c4c0c;
-  }
-
-  .ring.is-now .num { font-size: 24px; letter-spacing: 0; }
-  .ring.is-now .unit { display: none; }
-
-  .eta-line {
-    margin: 14px 0 0;
-    font-size: 17px;
-    font-weight: 700;
-    color: #6b5b1b;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .later {
-    margin-top: 26px;
+  .list {
+    margin-top: 30px;
     border-top: 1px solid var(--line);
   }
 
-  .later-row {
+  .row {
     display: grid;
     grid-template-columns: 1fr auto auto;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 2px;
+    align-items: baseline;
+    gap: 14px;
+    padding: 16px 2px;
+    border-bottom: 1px solid var(--line);
     text-align: left;
+  }
+
+  .row-label {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--soft);
+  }
+
+  .row-min {
+    min-width: 104px;
+    text-align: right;
+    font-size: 27px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -.02em;
     font-variant-numeric: tabular-nums;
   }
 
-  .later-row + .later-row { border-top: 1px solid var(--line); }
+  .row-min small {
+    margin-left: 3px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--soft);
+  }
 
-  .row-label { font-size: 13px; font-weight: 700; color: var(--soft); }
-  .row-time { font-size: 16px; font-weight: 600; color: var(--soft); }
-  .row-min { font-size: 21px; font-weight: 800; color: #4a3c05; }
+  .row-at {
+    min-width: 52px;
+    text-align: right;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row.is-next .row-label { color: var(--ink); }
+  .row.is-next .row-min { color: var(--pink); }
+  .row.is-next .row-min small { color: var(--pink); }
+
+  .row-min.is-now { font-size: 18px; letter-spacing: 0; }
 
   .status {
-    margin: 26px 0 0;
+    margin: 24px 0 0;
     padding-top: 14px;
     border-top: 1px solid var(--line);
     font-size: 11.5px;
@@ -194,44 +158,44 @@
 
   @media (max-width: 360px) {
     body { padding: 20px 16px calc(22px + env(safe-area-inset-bottom)); }
-    .ring { width: 180px; height: 180px; }
-    .num { font-size: 62px; }
-    .board { margin-top: 22px; }
-    .later-row { gap: 9px; }
+    .row { gap: 10px; padding: 14px 1px; }
+    .row-min { min-width: 92px; font-size: 24px; }
+    .list { margin-top: 24px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .refresh, .ring .bar { transition: none; }
+    .refresh { transition: none; }
   }
 </style>
 </head>
 <body>
 <main class="app">
   <div class="top">
-    <span class="route" aria-label="鐝 B3A">B3A</span>
-    <button class="refresh" id="refreshBtn" type="button">鍒锋柊</button>
+    <span class="route" aria-label="班次 B3A">B3A</span>
+    <button class="refresh" id="refreshBtn" type="button">刷新</button>
   </div>
 
-  <p class="dir">瀵屾嘲閭?鈫?娣卞湷婀惧彛宀?/p>
+  <p class="dir">富泰邨 → 深圳湾口岸</p>
 
-  <section class="board" aria-label="瀹炴椂鍒扮珯鏃堕棿">
-    <div class="ring" id="ring">
-      <svg viewBox="0 0 176 176" aria-hidden="true">
-        <circle class="track" cx="88" cy="88" r="74"></circle>
-        <circle class="bar" id="ringBar" cx="88" cy="88" r="74"></circle>
-      </svg>
-      <div class="ring-text">
-        <span class="num" id="nextMin">--</span>
-        <span class="unit" id="nextUnit">鍒嗛挓</span>
-      </div>
+  <section class="list" id="list" aria-label="实时到站时间">
+    <div class="row is-next" id="row1">
+      <span class="row-label">下一班</span>
+      <span class="row-min"><b id="min1">--</b><small id="unit1">分钟</small></span>
+      <span class="row-at" id="at1">--:--</span>
     </div>
-
-    <p class="eta-line" id="nextClock">姝ｅ湪鑾峰彇鈥?/p>
-
-    <div class="later" id="later"></div>
+    <div class="row" id="row2">
+      <span class="row-label">第 2 班</span>
+      <span class="row-min"><b id="min2">--</b><small id="unit2">分钟</small></span>
+      <span class="row-at" id="at2">--:--</span>
+    </div>
+    <div class="row" id="row3">
+      <span class="row-label">第 3 班</span>
+      <span class="row-min"><b id="min3">--</b><small id="unit3">分钟</small></span>
+      <span class="row-at" id="at3">--:--</span>
+    </div>
   </section>
 
-  <p class="status" id="status" role="status">姝ｅ湪鑾峰彇鈥?/p>
+  <p class="status" id="status" role="status">正在获取…</p>
 </main>
 
 <script>
@@ -245,17 +209,15 @@
   const REFRESH_MS = 30_000;
   const TIMEOUT_MS = 12_000;
   const MAX_BUSES = 3;
-  const RING_LEN = 2 * Math.PI * 74;
-  const FULL_MINUTES = 30;
-  const CLOSE_MINUTES = 5;
 
   const el = {
-    ring: document.getElementById("ring"),
-    bar: document.getElementById("ringBar"),
-    min: document.getElementById("nextMin"),
-    unit: document.getElementById("nextUnit"),
-    clock: document.getElementById("nextClock"),
-    later: document.getElementById("later"),
+    rows: [1, 2, 3].map(i => ({
+      row: document.getElementById(`row${i}`),
+      wrap: document.querySelector(`#row${i} .row-min`),
+      num: document.getElementById(`min${i}`),
+      unit: document.getElementById(`unit${i}`),
+      at: document.getElementById(`at${i}`)
+    })),
     status: document.getElementById("status"),
     btn: document.getElementById("refreshBtn")
   };
@@ -302,69 +264,57 @@
       .slice(0, MAX_BUSES);
   }
 
-  function rowMarkup(eta, index) {
-    const left = minutesLeft(eta);
-    const text = left <= 1 ? "鍗冲皢鍒扮珯" : `${left} 鍒嗛挓`;
-    return `<div class="later-row">
-      <span class="row-label">绗?${index} 鐝?/span>
-      <span class="row-time">${clock(eta)}</span>
-      <span class="row-min">${text}</span>
-    </div>`;
-  }
+  function renderRows() {
+    el.rows.forEach((slot, index) => {
+      const eta = state.arrivals[index];
+      slot.row.hidden = index > 0 && !eta;
+      slot.wrap.classList.remove("is-now");
+      slot.unit.hidden = false;
 
-  function setRing(minutes) {
-    const ratio = Math.max(0, Math.min(1, 1 - minutes / FULL_MINUTES));
-    el.bar.style.strokeDashoffset = String(RING_LEN * (1 - ratio));
-  }
+      if (!eta) {
+        slot.num.textContent = "--";
+        slot.unit.textContent = "分钟";
+        slot.at.textContent = "--:--";
+        return;
+      }
 
-  function renderHero() {
-    const next = state.arrivals[0];
-
-    if (!next) {
-      el.ring.classList.remove("is-now", "is-close");
-      setRing(FULL_MINUTES);
-      el.min.textContent = "--";
-      el.unit.textContent = "鍒嗛挓";
-      el.clock.textContent = state.loading && !state.hasData
-        ? "姝ｅ湪鑾峰彇鈥?
-        : state.error ? "鏆傛棤鏁版嵁" : "鏆傛棤鐝";
-      return;
-    }
-
-    const left = minutesLeft(next);
-    const soon = left <= 1;
-    el.ring.classList.toggle("is-now", soon);
-    el.ring.classList.toggle("is-close", left <= CLOSE_MINUTES);
-    setRing(Math.max(left, 0));
-
-    el.min.textContent = soon ? "鍗冲皢鍒扮珯" : String(Math.max(1, left));
-    el.unit.textContent = "鍒嗛挓";
-    el.clock.textContent = `${clock(next)} 鍒扮珯`;
-  }
-
-  function renderLater() {
-    const later = state.arrivals.slice(1);
-    el.later.innerHTML = later.map((eta, i) => rowMarkup(eta, i + 2)).join("");
-    el.later.hidden = later.length === 0;
+      const left = minutesLeft(eta);
+      if (left <= 1) {
+        slot.num.textContent = "即将到站";
+        slot.wrap.classList.add("is-now");
+        slot.unit.hidden = true;
+      } else {
+        slot.num.textContent = String(Math.max(1, left));
+        slot.unit.textContent = "分钟";
+      }
+      slot.at.textContent = clock(eta);
+    });
   }
 
   function renderStatus() {
     el.status.classList.toggle("is-error", state.error);
+
     if (state.error) {
       el.status.textContent = state.hasData
-        ? "杩炴帴澶辫触 路 鏄剧ず涓婃鏁版嵁"
-        : "杩炴帴澶辫触 路 璇锋鏌ョ綉缁滃悗鍒锋柊";
-    } else if (state.updatedAt) {
-      el.status.textContent = `${clock(state.updatedAt)} 鏇存柊 路 姣?30 绉掕嚜鍔ㄥ埛鏂癭;
-    } else {
-      el.status.textContent = "姝ｅ湪鑾峰彇鈥?;
+        ? "连接失败 · 显示上次数据"
+        : "连接失败 · 请检查网络后刷新";
+      return;
     }
+
+    if (!state.updatedAt) {
+      el.status.textContent = "正在获取…";
+      return;
+    }
+
+    const stamp = clock(state.updatedAt);
+    el.status.textContent = state.arrivals.length
+      ? `${stamp} 更新 · 每 30 秒自动刷新`
+      : `${stamp} 更新 · 暂无班次`;
   }
 
   function paint() {
     state.arrivals = state.arrivals.filter(eta => Date.parse(eta) > Date.now() - 60_000);
-    renderHero();
-    renderLater();
+    renderRows();
     renderStatus();
   }
 
@@ -373,7 +323,7 @@
     state.inFlight = true;
     state.loading = true;
     el.btn.disabled = true;
-    el.btn.textContent = "鍒锋柊涓?;
+    el.btn.textContent = "刷新中";
 
     const requestId = ++state.requestId;
     const controller = new AbortController();
@@ -404,7 +354,7 @@
         state.loading = false;
         state.nextAt = Date.now() + REFRESH_MS;
         el.btn.disabled = false;
-        el.btn.textContent = "鍒锋柊";
+        el.btn.textContent = "刷新";
         paint();
       }
     }
@@ -432,4 +382,3 @@
 </script>
 </body>
 </html>
-<!-- control -->
