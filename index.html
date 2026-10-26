@@ -13,6 +13,7 @@
     --soft: #7a6a24;
     --line: rgba(59, 47, 0, .16);
     --dark: #1f2937;
+    --green: #0f7a4a;
     --red: #a32b1f;
     color-scheme: light;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
@@ -89,43 +90,67 @@
     color: var(--soft);
   }
 
-  .board { margin-top: 32px; }
+  .board { margin-top: 26px; }
 
-  .label {
-    margin: 0 0 6px;
-    font-size: 12.5px;
-    font-weight: 700;
-    letter-spacing: .14em;
-    color: var(--soft);
+  .ring {
+    position: relative;
+    width: 176px;
+    height: 176px;
+    margin: 0 auto;
   }
 
-  .count {
-    margin: 0;
+  .ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .ring circle {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+  }
+
+  .ring .track { stroke: rgba(59, 47, 0, .13); }
+
+  .ring .bar {
+    stroke: var(--ink);
+    stroke-dasharray: 464.96;
+    stroke-dashoffset: 464.96;
+    transition: stroke-dashoffset .9s linear, stroke .3s;
+  }
+
+  .ring.is-close .bar { stroke: var(--green); }
+
+  .ring-text {
+    position: absolute;
+    inset: 0;
     display: flex;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    gap: 8px;
-    font-size: clamp(70px, 23vw, 94px);
+    gap: 2px;
+  }
+
+  .num {
+    font-size: 58px;
     font-weight: 900;
-    line-height: 1.02;
-    letter-spacing: -.045em;
+    line-height: 1;
+    letter-spacing: -.04em;
     font-variant-numeric: tabular-nums;
   }
 
-  .count .unit {
-    font-size: 25px;
-    font-weight: 800;
-    letter-spacing: .01em;
+  .unit {
+    font-size: 15px;
+    font-weight: 700;
     color: #5c4c0c;
   }
 
-  .count.is-now {
-    font-size: clamp(40px, 13vw, 52px);
-    letter-spacing: -.02em;
-  }
+  .ring.is-now .num { font-size: 24px; letter-spacing: 0; }
+  .ring.is-now .unit { display: none; }
 
   .eta-line {
-    margin: 8px 0 0;
+    margin: 14px 0 0;
     font-size: 17px;
     font-weight: 700;
     color: #6b5b1b;
@@ -133,8 +158,7 @@
   }
 
   .later {
-    margin-top: 30px;
-    padding-top: 4px;
+    margin-top: 26px;
     border-top: 1px solid var(--line);
   }
 
@@ -142,7 +166,7 @@
     display: grid;
     grid-template-columns: 1fr auto auto;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     padding: 12px 2px;
     text-align: left;
     font-variant-numeric: tabular-nums;
@@ -155,7 +179,7 @@
   .row-min { font-size: 21px; font-weight: 800; color: #4a3c05; }
 
   .status {
-    margin: 28px 0 0;
+    margin: 26px 0 0;
     padding-top: 14px;
     border-top: 1px solid var(--line);
     font-size: 11.5px;
@@ -168,14 +192,14 @@
 
   @media (max-width: 360px) {
     body { padding: 20px 16px calc(22px + env(safe-area-inset-bottom)); }
-    .count { font-size: clamp(60px, 22vw, 80px); }
-    .count .unit { font-size: 22px; }
-    .board { margin-top: 26px; }
-    .later-row { gap: 10px; }
+    .ring { width: 156px; height: 156px; }
+    .num { font-size: 50px; }
+    .board { margin-top: 22px; }
+    .later-row { gap: 9px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .refresh { transition: none; }
+    .refresh, .ring .bar { transition: none; }
   }
 </style>
 </head>
@@ -189,11 +213,18 @@
   <p class="dir">富泰邨 → 深圳湾口岸</p>
 
   <section class="board" aria-label="实时到站时间">
-    <p class="label">下一班</p>
-    <p class="count" id="nextCount">
-      <span id="nextMin">--</span><span class="unit" id="nextUnit">分钟</span>
-    </p>
-    <p class="eta-line" id="nextClock">正在进行中…</p>
+    <div class="ring" id="ring">
+      <svg viewBox="0 0 176 176" aria-hidden="true">
+        <circle class="track" cx="88" cy="88" r="74"></circle>
+        <circle class="bar" id="ringBar" cx="88" cy="88" r="74"></circle>
+      </svg>
+      <div class="ring-text">
+        <span class="num" id="nextMin">--</span>
+        <span class="unit" id="nextUnit">分钟</span>
+      </div>
+    </div>
+
+    <p class="eta-line" id="nextClock">正在获取…</p>
 
     <div class="later" id="later"></div>
   </section>
@@ -212,9 +243,13 @@
   const REFRESH_MS = 30_000;
   const TIMEOUT_MS = 12_000;
   const MAX_BUSES = 3;
+  const RING_LEN = 2 * Math.PI * 74;
+  const FULL_MINUTES = 30;
+  const CLOSE_MINUTES = 5;
 
   const el = {
-    count: document.getElementById("nextCount"),
+    ring: document.getElementById("ring"),
+    bar: document.getElementById("ringBar"),
     min: document.getElementById("nextMin"),
     unit: document.getElementById("nextUnit"),
     clock: document.getElementById("nextClock"),
@@ -275,11 +310,17 @@
     </div>`;
   }
 
+  function setRing(minutes) {
+    const ratio = Math.max(0, Math.min(1, 1 - minutes / FULL_MINUTES));
+    el.bar.style.strokeDashoffset = String(RING_LEN * (1 - ratio));
+  }
+
   function renderHero() {
     const next = state.arrivals[0];
 
     if (!next) {
-      el.count.classList.remove("is-now");
+      el.ring.classList.remove("is-now", "is-close");
+      setRing(FULL_MINUTES);
       el.min.textContent = "--";
       el.unit.textContent = "分钟";
       el.clock.textContent = state.loading && !state.hasData
@@ -290,9 +331,12 @@
 
     const left = minutesLeft(next);
     const soon = left <= 1;
-    el.count.classList.toggle("is-now", soon);
+    el.ring.classList.toggle("is-now", soon);
+    el.ring.classList.toggle("is-close", left <= CLOSE_MINUTES);
+    setRing(Math.max(left, 0));
+
     el.min.textContent = soon ? "即将到站" : String(Math.max(1, left));
-    el.unit.textContent = soon ? "" : "分钟";
+    el.unit.textContent = "分钟";
     el.clock.textContent = `${clock(next)} 到站`;
   }
 
