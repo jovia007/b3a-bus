@@ -213,7 +213,8 @@
   const el = {
     rows: [1, 2, 3].map(i => ({
       row: document.getElementById(`row${i}`),
-      min: document.getElementById(`min${i}`),
+      wrap: document.querySelector(`#row${i} .row-min`),
+      num: document.getElementById(`min${i}`),
       unit: document.getElementById(`unit${i}`),
       at: document.getElementById(`at${i}`)
     })),
@@ -267,11 +268,11 @@
     el.rows.forEach((slot, index) => {
       const eta = state.arrivals[index];
       slot.row.hidden = index > 0 && !eta;
-      slot.min.classList.remove("is-now");
+      slot.wrap.classList.remove("is-now");
       slot.unit.hidden = false;
 
       if (!eta) {
-        slot.min.textContent = "--";
+        slot.num.textContent = "--";
         slot.unit.textContent = "分钟";
         slot.at.textContent = "--:--";
         return;
@@ -279,11 +280,11 @@
 
       const left = minutesLeft(eta);
       if (left <= 1) {
-        slot.min.textContent = "即将到站";
-        slot.min.classList.add("is-now");
+        slot.num.textContent = "即将到站";
+        slot.wrap.classList.add("is-now");
         slot.unit.hidden = true;
       } else {
-        slot.min.textContent = String(Math.max(1, left));
+        slot.num.textContent = String(Math.max(1, left));
         slot.unit.textContent = "分钟";
       }
       slot.at.textContent = clock(eta);
